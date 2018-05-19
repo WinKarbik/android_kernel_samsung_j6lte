@@ -184,7 +184,7 @@ fw-shipped-$(CONFIG_KEYBOARD_MELFAS_MHS204) += melfas_tk/mhs204g_on7xlte.fw
 fw-shipped-$(CONFIG_KEYBOARD_MELFAS_MHS2041) += melfas_tk/mhs204_j5y17.fw melfas_tk/mhs2041_j5y17.fw melfas_tk/mhs2041_j7y17.fw
 fw-shipped-$(CONFIG_KEYBOARD_MELFAS_MHS2041B) += melfas_tk/mhs2041_j5y17.fw melfas_tk/mhs2041B_j5y17.fw melfas_tk/mhs2041B_j5y17_new.fw \
 						melfas_tk/mhs2041_j7y17.fw melfas_tk/mhs2041B_j7y17.fw melfas_tk/mhs2041B_j7y17_new.fw \
-						melfas_tk/mhs2041B_j7y17_ltn.fw melfas_tk/mhs2041B_j7y17_open.fw melfas_tk/melfas_mip4_tk.fw
+						melfas_tk/mhs2041B_j7y17_ltn.fw melfas_tk/mhs2041B_j7y17_open.fw
 
 fw-shipped-$(CONFIG_KEYBOARD_ABOV_TOUCH_FT1804) += abov/abov_a7_max.fw
 fw-shipped-$(CONFIG_KEYBOARD_ABOV_TOUCH_T316) += abov/a96t316_a3y17.fw abov/a96t316_j5y17.fw abov/a96t316_a3xpre.fw abov/a96t316_a3xpre_new.fw abov/a96t316_a3xpre_0506.fw
