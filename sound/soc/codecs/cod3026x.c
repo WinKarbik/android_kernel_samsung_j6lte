@@ -2168,7 +2168,7 @@ static void cod3026x_adc_mute_work(struct work_struct *work)
 	struct snd_soc_codec *codec = cod3026x->codec;
 
 	mutex_lock(&cod3026x->adc_mute_lock);
-	msleep(170);
+	msleep(220);
 	dev_dbg(codec->dev, "%s called\n", __func__);
 	cod3026x_adc_digital_mute(codec, false);
 	mutex_unlock(&cod3026x->adc_mute_lock);
@@ -2639,6 +2639,8 @@ static void cod3026x_jack_det_work(struct work_struct *work)
 		dev_err(cod3026x->codec->dev, "[DEBUG] %s(%d) \n", __func__, __LINE__);
 		snd_soc_write(cod3026x->codec, 0x85, 0xff);
 		snd_soc_write(cod3026x->codec, 0x80, 0x00);
+		snd_soc_update_bits(cod3026x->codec, COD3026X_12_PD_AD2,
+				PDB_MIC_BST3_MASK, 0);
 	}
 
 	if (cod3026x->is_suspend)
@@ -2782,6 +2784,8 @@ static void cod3026x_jack_det_work(struct work_struct *work)
 		dev_err(cod3026x->codec->dev, "[DEBUG] %s(%d) \n",__func__, __LINE__);
 		snd_soc_write(cod3026x->codec, 0x85, 0xff);
 		snd_soc_write(cod3026x->codec, 0x80, 0x00);
+		snd_soc_update_bits(cod3026x->codec, COD3026X_12_PD_AD2,
+				PDB_MIC_BST3_MASK, 0);
 	}
 
 	if (cod3026x->is_suspend)
