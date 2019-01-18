@@ -458,6 +458,15 @@ config SENSORS_A96T3X6
 
 	  Say N here if you do not use A96T3X6 for grip.
 
+config SENSORS_A96T3X6_EARJACKOFF
+	depends on SENSORS_A96T3X6
+	tristate "A96T3X6 touchkey"
+	default n
+	help
+	  Say Y here if you use earjack exception.
+	  This option enables grip sensors using
+	  Above A96T3X6 device driver for grip.
+
 config SENSORS_A96T3X6_J8
 	depends on I2C
 	tristate "A96T3X6 touchkey"

@@ -445,6 +445,49 @@ static inline enum s5p_mfc_node_type s5p_mfc_get_node_type(struct file *file)
 
 }
 
+static void mfc_handle_black_bar_info(struct s5p_mfc_dev *dev, struct s5p_mfc_ctx *ctx)
+{
+	struct v4l2_rect new_black_bar;
+	int black_bar_info;
+	struct s5p_mfc_dec *dec = ctx->dec_priv;
+
+	black_bar_info = s5p_mfc_get_black_bar_detection();
+	mfc_debug(3, "black bar type: %#x\n", black_bar_info);
+
+	if (black_bar_info == S5P_FIMV_DISP_STATUS_BLACK_BAR) {
+		new_black_bar.left = s5p_mfc_get_black_bar_pos_x();
+		new_black_bar.top = s5p_mfc_get_black_bar_pos_y();
+		new_black_bar.width = s5p_mfc_get_black_bar_image_w();
+		new_black_bar.height = s5p_mfc_get_black_bar_image_h();
+	} else if (black_bar_info == S5P_FIMV_DISP_STATUS_BLACK_SCREEN) {
+		new_black_bar.left = -1;
+		new_black_bar.top = -1;
+		new_black_bar.width = ctx->img_width;
+		new_black_bar.height = ctx->img_height;
+	} else if (black_bar_info == S5P_FIMV_DISP_STATUS_NOT_DETECTED) {
+		new_black_bar.left = 0;
+		new_black_bar.top = 0;
+		new_black_bar.width = ctx->img_width;
+		new_black_bar.height = ctx->img_height;
+	} else {
+		mfc_err_ctx("Not supported black bar type: %#x\n", black_bar_info);
+		dec->black_bar_updated = 0;
+		return;
+	}
+
+	if ((new_black_bar.left == dec->black_bar.left) &&
+			(new_black_bar.top == dec->black_bar.top) &&
+			(new_black_bar.width == dec->black_bar.width) &&
+			(new_black_bar.height == dec->black_bar.height)) {
+		mfc_debug(3, "black bar info was not changed\n");
+		dec->black_bar_updated = 0;
+		return;
+	}
+
+	dec->black_bar = new_black_bar;
+	dec->black_bar_updated = 1;
+}
+
 static void s5p_mfc_handle_frame_all_extracted(struct s5p_mfc_ctx *ctx)
 {
 	struct s5p_mfc_dec *dec;
@@ -724,6 +767,12 @@ static void s5p_mfc_handle_frame_new(struct s5p_mfc_ctx *ctx, unsigned int err)
 	}
 	if (interlaced_cond(ctx))
 		is_interlace = s5p_mfc_is_interlace_picture();
+
+	if (FW_HAS_BLACK_BAR_DETECT(dev) && dec->detect_black_bar)
+		mfc_handle_black_bar_info(dev, ctx);
+	else
+		dec->black_bar_updated = 0;
+
 	if (dec->is_dynamic_dpb) {
 		prev_flag = dec->dynamic_used;
 		dec->dynamic_used = mfc_get_dec_used_flag();
@@ -795,6 +844,7 @@ static void s5p_mfc_handle_frame_new(struct s5p_mfc_ctx *ctx, unsigned int err)
 				ctx->dst_queue_cnt--;
 
 			dst_buf->vb.v4l2_buf.sequence = ctx->sequence;
+			dst_buf->vb.v4l2_buf.reserved2 = 0;
 
 			if (is_interlace) {
 				interlace_type = s5p_mfc_get_interlace_type();
@@ -807,6 +857,11 @@ static void s5p_mfc_handle_frame_new(struct s5p_mfc_ctx *ctx, unsigned int err)
 				dst_buf->vb.v4l2_buf.field = V4L2_FIELD_NONE;
 			mfc_debug(2, "is_interlace : %d interlace_type : %d\n",
 				is_interlace, interlace_type);
+
+			if (dec->black_bar_updated) {
+				dst_buf->vb.v4l2_buf.reserved2 |= (1 << 5);
+				mfc_debug(3, "black bar detected\n");
+			}
 
 			if (ctx->src_fmt->mem_planes == 1) {
 				vb2_set_plane_payload(&dst_buf->vb, 0,

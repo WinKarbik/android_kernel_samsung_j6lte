@@ -410,18 +410,28 @@ static void sec_bat_get_charging_current_by_siop(struct sec_battery_info *batter
 			*charging_current = 900;
 		}
 	} else if (battery->siop_level < 100) {
-		/* decrease the charging current according to siop level */
-		*charging_current = *charging_current * battery->siop_level / 100;
+		int max_charging_current;
 
-		/* do forced set charging current */
-		if (*charging_current > 0 && *charging_current < usb_charging_current)
-			*charging_current = usb_charging_current;
+		if (is_wireless_type(battery->cable_type)) {
+			/* decrease the charging current according to siop level */
+			*charging_current = *charging_current * battery->siop_level / 100;
 
-		/* if siop level is 0, set minimum charging current from dt */
-		if (battery->siop_level == 0 && 
-			battery->pdata->minimum_charging_current_by_siop_0 > 0){
-			pr_info("%s: set minimum charging current(%d) when siop level is 0\n", __func__, battery->pdata->minimum_charging_current_by_siop_0);
-			*charging_current = battery->pdata->minimum_charging_current_by_siop_0;
+			/* do forced set charging current */
+			if (*charging_current > 0 && *charging_current < usb_charging_current)
+				*charging_current = usb_charging_current;
+
+			/* if siop level is 0, set minimum charging current from dt */
+			if (battery->siop_level == 0 && 
+				battery->pdata->minimum_charging_current_by_siop_0 > 0){
+				pr_info("%s: set minimum charging current(%d) when siop level is 0\n", __func__, battery->pdata->minimum_charging_current_by_siop_0);
+				*charging_current = battery->pdata->minimum_charging_current_by_siop_0;
+			}
+		} else {
+			max_charging_current = 1800; /* 1 step(70) */
+
+			/* do forced set charging current */
+			if (*charging_current > max_charging_current)
+				*charging_current = max_charging_current;
 		}
 
 		if (is_nv_wireless_type(battery->cable_type)) {
@@ -438,26 +448,18 @@ static void sec_bat_get_charging_current_by_siop(struct sec_battery_info *batter
 			if (is_hv_wire_12v_type(battery->cable_type)) {
 				if (*input_current > battery->pdata->siop_hv_12v_input_limit_current)
 					*input_current = battery->pdata->siop_hv_12v_input_limit_current;
-				if (*charging_current > battery->pdata->siop_hv_12v_charging_limit_current)
-					*charging_current = battery->pdata->siop_hv_12v_charging_limit_current;
 			} else {
 				if (*input_current > battery->pdata->siop_hv_input_limit_current)
 					*input_current = battery->pdata->siop_hv_input_limit_current;
-				if (*charging_current > battery->pdata->siop_hv_charging_limit_current)
-					*charging_current = battery->pdata->siop_hv_charging_limit_current;
 			}
 #if defined(CONFIG_CCIC_NOTIFIER)
 		} else if (battery->cable_type == POWER_SUPPLY_TYPE_PDIC) {
 			if (*input_current > (6000 / battery->input_voltage))
 				*input_current = 6000 / battery->input_voltage;
-			if (*charging_current > battery->pdata->siop_charging_limit_current)
-				*charging_current = battery->pdata->siop_charging_limit_current;
 #endif
 		} else {
 			if (*input_current > battery->pdata->siop_input_limit_current)
 				*input_current = battery->pdata->siop_input_limit_current;
-			if (*charging_current > battery->pdata->siop_charging_limit_current)
-				*charging_current = battery->pdata->siop_charging_limit_current;
 		}
 	}
 }
@@ -1007,9 +1009,6 @@ static int sec_bat_get_adc_data(struct sec_battery_info *battery,
 #endif
 		mutex_unlock(&battery->adclock);
 
-		if (adc_data < 0)
-			goto err;
-
 		if (i != 0) {
 			if (adc_data > adc_max)
 				adc_max = adc_data;
@@ -1023,8 +1022,6 @@ static int sec_bat_get_adc_data(struct sec_battery_info *battery,
 	}
 
 	return (adc_total - adc_max - adc_min) / (count - 2);
-err:
-	return adc_data;
 }
 
 /*
