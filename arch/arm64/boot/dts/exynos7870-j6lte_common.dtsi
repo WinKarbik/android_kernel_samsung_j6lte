@@ -143,7 +143,7 @@
 			io-channel-names = "adc-jack";
 			#io-channel-cells = <1>;
 			io-channel-ranges;
-			but-zones-list = <&but_zones 226 0 220>, /* send/end */ 
+			but-zones-list = <&but_zones 226 0 220>, /* send/end */
 					<&but_zones 582 221 305>, /* google */
 					<&but_zones 115 306 510>, /* vol up */
 					<&but_zones 114 511 1107>; /* vol down */
@@ -1358,6 +1358,7 @@
 			id = <0>; /* matching sensor id */
 			fnum = <2>; /* F1_9 : fimc-is-param.h */
 			setfile = "setB";
+			use_initial_ae;	/* for initial AE */
 		};
 	};
 
@@ -1396,6 +1397,7 @@
 			id = <1>; /* matching sensor id */
 			fnum = <2>; /* F1_9 : fimc-is-param.h */
 			setfile = "setB"; /*EVT 01*/
+			use_initial_ae;	/* for initial AE */
 		};
 	};
 
@@ -1420,7 +1422,7 @@
 			samsung,pin-val = <0>;
 		};
 	};
-	
+
 	hsi2c_6: hsi2c@138F0000 {
 		status = "okay";
 		clock-frequency = <400000>;

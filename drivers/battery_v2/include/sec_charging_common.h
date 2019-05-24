@@ -56,9 +56,22 @@ enum power_supply_ext_property {
 	POWER_SUPPLY_EXT_PROP_ANDIG_IVR_SWITCH,
 	POWER_SUPPLY_EXT_PROP_FUELGAUGE_FACTORY,
 	POWER_SUPPLY_EXT_PROP_CURRENT_MEASURE,
+	POWER_SUPPLY_EXT_PROP_HV_DISABLE,
 #if defined(CONFIG_FUELGAUGE_S2MU004) || defined(CONFIG_FUELGAUGE_S2MU005)
 	POWER_SUPPLY_EXT_PROP_UPDATE_BATTERY_DATA,
 #endif
+};
+
+enum sec_battery_usb_conf {
+	USB_CURRENT_UNCONFIGURED = 100,
+	USB_CURRENT_HIGH_SPEED = 500,
+	USB_CURRENT_SUPER_SPEED = 900,
+};
+
+enum sec_battery_rp_curr {
+	RP_CURRENT_RP1 = 500,
+	RP_CURRENT_RP2 = 1500,
+	RP_CURRENT_RP3 = 3000,
 };
 
 enum power_supply_ext_health {
@@ -776,6 +789,9 @@ struct sec_battery_platform_data {
 	unsigned int normal_charging_total_time;
 	unsigned int usb_charging_total_time;
 
+	/* moisture detect function support for non-water proof USB type-b models */
+	bool detect_moisture;
+
 	/* fuel gauge */
 	char *fuelgauge_name;
 	int fg_irq;
@@ -835,6 +851,11 @@ struct sec_battery_platform_data {
 	int siop_wireless_charging_limit_current;
 	int siop_hv_wireless_input_limit_current;
 	int siop_hv_wireless_charging_limit_current;
+
+	int default_input_current;
+	int default_charging_current;
+	int default_usb_input_current;
+ 	int default_usb_charging_current;
 	int max_input_voltage;
 	int max_input_current;
 	int pre_afc_work_delay;
@@ -846,8 +867,8 @@ struct sec_battery_platform_data {
 
 	bool fake_capacity;
 
-#if defined(CONFIG_BATTERY_CISD)
 	unsigned int battery_full_capacity;
+#if defined(CONFIG_BATTERY_CISD)
 	unsigned int cisd_cap_high_thr;
 	unsigned int cisd_cap_low_thr;
 	unsigned int cisd_cap_limit;
